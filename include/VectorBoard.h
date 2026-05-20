@@ -1,5 +1,6 @@
 #pragma once
 #include "Board.h"
+#include "Piece.h"
 #include <unordered_map>
 
 class VectorBoard : public Board
@@ -11,4 +12,6 @@ public:
 	Piece getPiece(int position) override;
 	bool hasPiece(int position) override;
 	void addPiece(Piece piece) override;
+
+	void standardBoard() override;
 };

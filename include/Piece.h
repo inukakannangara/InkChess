@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 
-enum PieceType
+enum class PieceType
 {
 	PAWN,
 	KNIGHT,
@@ -11,7 +11,7 @@ enum PieceType
 	KING
 };
 
-enum PieceAlliance
+enum class PieceAlliance
 {
 	DARK,
 	LIGHT

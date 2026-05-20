@@ -7,4 +7,6 @@ public:
 	virtual Piece getPiece(int position) = 0;
 	virtual bool hasPiece(int position) = 0;
 	virtual void addPiece(Piece piece) = 0;
+
+	virtual void standardBoard() = 0;
 };

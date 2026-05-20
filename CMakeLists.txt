@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(external/raylib)
 
+file (COPY ${CMAKE_SOURCE_DIR}/src/res DESTINATION ${CMAKE_BINARY_DIR})
+
 file(GLOB_RECURSE SOURCES CMAKE_CONFIGURE_DEPENDS
     src/*.cpp
 )
