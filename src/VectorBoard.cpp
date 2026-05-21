@@ -88,7 +88,7 @@ void VectorBoard::makeMove(const Move& move)
 
 	addPiece(movedPiece);
 
-	//isLightTurn = !(move.movingPiece.pieceAlliance == PieceAlliance::LIGHT);
+	isLightTurn = !(move.movingPiece.pieceAlliance == PieceAlliance::LIGHT);
 }
 
 void VectorBoard::standardBoard()

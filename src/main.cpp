@@ -9,7 +9,7 @@ int main()
     SetTargetFPS(30);
 
     Board* board = new VectorBoard;
-    board->addPiece(Piece{ 34, PieceType::ROOK, PieceAlliance::LIGHT });
+    board->standardBoard();
 
     while (!WindowShouldClose())
     {

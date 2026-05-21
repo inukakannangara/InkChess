@@ -91,8 +91,64 @@ private:
 	}
 	inline unordered_set<int> getPawnDestinationPositions(int position, PieceAlliance alliance)
 	{
-		unordered_set<int> empty;
-		return empty;
+		unordered_set<int> destinations;
+
+		int direction = alliance == PieceAlliance::LIGHT ? -1 : 1;
+		int destination;
+
+		for (int i = 8; i <= 16; i += 8)
+		{
+			destination = position + i * direction;
+
+			if (i == 16)
+			{
+				int allowedRank = (alliance == PieceAlliance::LIGHT) ? 1 : 6;
+				if (!isInRank(position, allowedRank)) break;
+			}
+
+			if (hasPiece(destination)) break;
+			destinations.insert(destination);
+		}
+
+		unordered_set<int> offsets;
+
+		if (!isInFile(position, 0))
+		{
+			if (alliance == PieceAlliance::LIGHT)
+			{
+				offsets.insert(-9);
+			}
+			else
+			{
+				offsets.insert(7);
+			}
+		}
+		if (!isInFile(position, 7))
+		{
+			if (alliance == PieceAlliance::LIGHT)
+			{
+				offsets.insert(-7);
+			}
+			else
+			{
+				offsets.insert(9);
+			}
+		}
+
+		for (int offset : offsets)
+		{
+			destination = position + offset;
+			if (hasPiece(destination))
+			{
+				Piece& piece = getPiece(destination);
+				if (piece.pieceAlliance != alliance)
+				{
+					destinations.insert(destination);
+				}
+			}
+		}
+
+		return destinations;
 	}
 	inline unordered_set<int> getKnightDestinationPositions(int position, PieceAlliance alliance)
 	{
@@ -156,8 +212,36 @@ private:
 	}
 	inline unordered_set<int> getBishopDestinationPositions(int position, PieceAlliance alliance)
 	{
-		unordered_set<int> empty;
-		return empty;
+		unordered_set<int> destinations;
+		
+		vector<int> offsets;
+
+		if (!isInFile(position, 7))
+		{
+			offsets.push_back(9);
+			offsets.push_back(-7);
+		}
+	
+		if (!isInFile(position, 0))
+		{
+			offsets.push_back(-9);
+			offsets.push_back(7);
+		}
+
+		int destination = position;
+		for (int offset : offsets)
+		{
+			while (isPositionInBounds(destination))
+			{
+				destination = destination + offset;
+				if (handlePieceBlock(destination, destinations, alliance)) break;
+
+				if (isInRank(destination, 0) || isInRank(destination, 7) || isInFile(destination, 0) || isInFile(destination, 7)) break;
+			}
+			destination = position;
+		}
+
+		return destinations;
 	}
 	inline unordered_set<int> getRookDestinationPositions(int position, PieceAlliance alliance)
 	{
@@ -197,18 +281,57 @@ private:
 			horizontalDestination = horizontalDestination - 1;
 		}
 
-
 		return destinations;
 	}
 	inline unordered_set<int> getQueenDestinationPositions(int position, PieceAlliance alliance)
 	{
-		unordered_set<int> empty;
-		return empty;
+		unordered_set<int> bishopDestinations = getBishopDestinationPositions(position, alliance);
+		unordered_set<int>& rookDestinations = getRookDestinationPositions(position, alliance);
+
+		bishopDestinations.insert(rookDestinations.begin(), rookDestinations.end());
+
+		return bishopDestinations;
 	}
 	inline unordered_set<int> getKingDestinationPositions(int position, PieceAlliance alliance)
 	{
-		unordered_set<int> empty;
-		return empty;
+		unordered_set<int> destinations;
+
+		vector<int> offsets{ 8, -8 };
+
+		if (!isInFile(position, 0))
+		{
+			offsets.push_back(-1);
+			offsets.push_back(7);
+			offsets.push_back(-9);
+		}
+
+		if (!isInFile(position, 7))
+		{
+			offsets.push_back(1);
+			offsets.push_back(-7);
+			offsets.push_back(9);
+		}
+
+		int destination;
+		for (int offset : offsets)
+		{
+			destination = position + offset;
+
+			if (hasPiece(destination))
+			{
+				Piece& piece = getPiece(destination);
+				if (piece.pieceAlliance != alliance)
+				{
+					destinations.insert(destination);
+				}
+			}
+			else
+			{
+				destinations.insert(destination);
+			}
+		}
+
+		return destinations;
 	}
 
 public:
