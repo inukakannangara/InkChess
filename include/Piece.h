@@ -1,5 +1,8 @@
 #pragma once
 #include <functional>
+#include <vector>
+
+using namespace std;
 
 enum class PieceType
 {

@@ -1,20 +1,94 @@
 #include "VectorBoard.h"
 
+using namespace std;
+
 Piece VectorBoard::getPiece(int position)
 {
-	return pieces.at(position);
+	if (lightPieces.find(position) != lightPieces.end())
+	{
+		return lightPieces.at(position);
+	}
+	else
+	{
+		return darkPieces.at(position);
+	}
 }
-
 bool VectorBoard::hasPiece(int position)
 {
-	return pieces.find(position) != pieces.end();
+	return lightPieces.find(position) != lightPieces.end() || darkPieces.find(position) != darkPieces.end();
 }
-
-void VectorBoard::addPiece(Piece piece)
+void VectorBoard::addPiece(const Piece& piece)
 {
 	if (hasPiece(piece.piecePosition)) return;
 
-	pieces[piece.piecePosition] = piece;
+	if (piece.pieceAlliance == PieceAlliance::LIGHT)
+	{
+		lightPieces[piece.piecePosition] = piece;
+		return;
+	}
+
+	if (piece.pieceAlliance == PieceAlliance::DARK)
+	{
+		darkPieces[piece.piecePosition] = piece;
+		return;
+	}
+}
+
+void VectorBoard::removePiece(const Piece& piece)
+{
+	unordered_map<int, Piece>& pieces = piece.pieceAlliance == PieceAlliance::LIGHT ? lightPieces : darkPieces;
+	pieces.erase(piece.piecePosition);
+}
+
+set<Move> VectorBoard::getPseudoLegalMoves()
+{
+	set<Move> pseudoLegalMoves;
+
+	unordered_map<int, Piece>& playingPieces = isLightTurn ? lightPieces : darkPieces;
+	unordered_map<int, Piece>& opponentPieces = isLightTurn ? darkPieces : lightPieces;
+
+	for (auto& p : playingPieces)
+	{
+		Piece piece = p.second;
+		unordered_set<int> pieceDestinationPositions = getDestinationPositions(piece);
+
+		for (int destination : pieceDestinationPositions)
+		{
+			Move move{ piece.piecePosition, destination, piece, false, piece };
+
+			auto capturePieceIter = opponentPieces.find(destination);
+			if (capturePieceIter != opponentPieces.end())
+			{
+				move.isCaptureMove = true;
+				move.capturePiece = capturePieceIter->second;
+			}
+
+			pseudoLegalMoves.insert(move);
+		}
+	}
+	return pseudoLegalMoves;
+}
+
+set<Move> VectorBoard::getLegalMoves()
+{
+	return getPseudoLegalMoves();
+}
+
+void VectorBoard::makeMove(const Move& move)
+{
+	removePiece(move.movingPiece);
+	
+	Piece movedPiece = move.movingPiece;
+	movedPiece.piecePosition = move.destinationPosition;
+
+	if (move.isCaptureMove)
+	{
+		removePiece(move.capturePiece);
+	}
+
+	addPiece(movedPiece);
+
+	//isLightTurn = !(move.movingPiece.pieceAlliance == PieceAlliance::LIGHT);
 }
 
 void VectorBoard::standardBoard()
@@ -46,4 +120,6 @@ void VectorBoard::standardBoard()
 	addPiece(Piece{ 61, PieceType::BISHOP, PieceAlliance::LIGHT });
 	addPiece(Piece{ 62, PieceType::KNIGHT, PieceAlliance::LIGHT });
 	addPiece(Piece{ 63, PieceType::ROOK, PieceAlliance::LIGHT });
+
+	isLightTurn = true;
 }
