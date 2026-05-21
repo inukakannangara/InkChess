@@ -16,7 +16,9 @@ public:
 	virtual void removePiece(const Piece& piece) = 0;
 
 	virtual std::set<Move> getLegalMoves() = 0;
-	virtual void makeMove(const Move& move) = 0;
+	virtual void makeMove(const Move& move, bool changeTurn) = 0;
+
+	virtual int getKingPosition(PieceAlliance alliance) = 0;
 
 	virtual void standardBoard() = 0;
 };

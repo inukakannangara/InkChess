@@ -196,7 +196,7 @@ namespace GUI
 			auto moveIter = legalMoves.find(attemptMove);
 			if (moveIter != legalMoves.end())
 			{
-				board.makeMove(*moveIter);
+				board.makeMove(*moveIter, true);
 				isTileSelected = false;
 				legalMoves = {};
 				return;

@@ -343,7 +343,9 @@ public:
 	set<Move> getPseudoLegalMoves();
 	set<Move> getLegalMoves() override;
 
-	void makeMove(const Move& move) override;
+	void makeMove(const Move& move, bool changeTurn) override;
+
+	int getKingPosition(PieceAlliance alliance) override;
 
 	void standardBoard() override;
 };

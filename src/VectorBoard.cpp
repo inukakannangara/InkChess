@@ -71,10 +71,49 @@ set<Move> VectorBoard::getPseudoLegalMoves()
 
 set<Move> VectorBoard::getLegalMoves()
 {
-	return getPseudoLegalMoves();
+	set<Move> pseudoLegalMoves = getPseudoLegalMoves();
+	set<Move> legalMoves;
+
+	PieceAlliance playingAlliance = isLightTurn ? PieceAlliance::LIGHT : PieceAlliance::DARK;
+
+	int prevKingPosition = getKingPosition(playingAlliance);
+	int newKingPosition;
+
+	for (const Move& pseudoMove : pseudoLegalMoves)
+	{
+		VectorBoard board = *this;
+		board.makeMove(pseudoMove, true);
+
+		if (pseudoMove.movingPiece.pieceType == PieceType::KING)
+		{
+			newKingPosition = pseudoMove.destinationPosition;
+		}
+		else
+		{
+			newKingPosition = prevKingPosition;
+		}
+
+		set<Move> opponentLegalMoves = board.getPseudoLegalMoves();
+
+		bool isMoveLegal = true;
+		for (const Move& opponentMove : opponentLegalMoves)
+		{
+			if (opponentMove.destinationPosition == newKingPosition)
+			{
+				isMoveLegal = false;
+			}
+		}
+
+		if (isMoveLegal)
+		{
+			legalMoves.insert(pseudoMove);
+		}
+	}
+	
+	return legalMoves;
 }
 
-void VectorBoard::makeMove(const Move& move)
+void VectorBoard::makeMove(const Move& move, bool changeTurn)
 {
 	removePiece(move.movingPiece);
 	
@@ -88,7 +127,23 @@ void VectorBoard::makeMove(const Move& move)
 
 	addPiece(movedPiece);
 
-	isLightTurn = !(move.movingPiece.pieceAlliance == PieceAlliance::LIGHT);
+	if (changeTurn)
+	{
+		isLightTurn = !(move.movingPiece.pieceAlliance == PieceAlliance::LIGHT);
+	}
+}
+
+int VectorBoard::getKingPosition(PieceAlliance alliance)
+{
+	unordered_map<int, Piece>& pieces = (alliance == PieceAlliance::LIGHT) ? lightPieces : darkPieces;
+
+	for (auto& p : pieces)
+	{
+		if (p.second.pieceType == PieceType::KING)
+		{
+			return p.second.piecePosition;
+		}
+	}
 }
 
 void VectorBoard::standardBoard()
