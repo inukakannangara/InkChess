@@ -1,211 +1,225 @@
 #include "raylib.h"
-#include "board.h"
-#include <string>
-#include <iostream>
 #include <unordered_set>
+#include "gui.h"
 
 using namespace std;
 
-namespace GUI
+int tileSize;
+
+const int nullPosition = -1;
+int selectedStartingPosition = nullPosition;
+int selectedDestinationPosition = nullPosition;
+
+bool hasTexturesLoaded = false;
+
+const string basePath = "res/piece-images/";
+inline static string getPiecePath(Piece piece)
 {
-	static int windowSize;
-	static int tileSize;
+	std::string piecePath = basePath;
 
-	static bool isTileSelected = false;
-	static int selectedTilePosition;
-
-	static set<Move> legalMoves;
-
-	static bool hasTexturesLoaded = false;
-
-	static const string basePath = "res/piece-images/";
-	static string getPiecePath(Piece piece)
+	switch (piece.pieceAlliance)
 	{
-		std::string piecePath = basePath;
-
-		switch (piece.pieceAlliance)
-		{
-			case PieceAlliance::DARK:
-			{
-				piecePath += "black";
-				break;
-			}
-			case PieceAlliance::LIGHT:
-			{
-				piecePath += "white";
-				break;
-			}
-		}
-
-		piecePath += "-";
-
-		switch (piece.pieceType)
-			{
-			case PieceType::PAWN:
-			{
-				piecePath += "pawn";
-				break;
-			}
-			case PieceType::KNIGHT:
-			{
-				piecePath += "knight";
-				break;
-			}
-			case PieceType::BISHOP:
-			{
-				piecePath += "bishop";
-				break;
-			}
-			case PieceType::ROOK:
-			{
-				piecePath += "rook";
-				break;
-			}
-			case PieceType::QUEEN:
-			{
-				piecePath += "queen";
-				break;
-			}
-			case PieceType::KING:
-			{
-				piecePath += "king";
-				break;
-			}
-		}
-
-		piecePath += ".png";
-		return piecePath;
+	case PieceAlliance::DARK:
+	{
+		piecePath += "black";
+		break;
+	}
+	case PieceAlliance::LIGHT:
+	{
+		piecePath += "white";
+		break;
+	}
 	}
 
-	static unordered_map<string, Texture2D> pieceTextureMap;
-	static int textureSize;
+	piecePath += "-";
 
-	static void loadTextures()
+	switch (piece.pieceType)
 	{
-		Texture2D texture;
-		for (int pieceAlliance = 0; pieceAlliance < 2; pieceAlliance++)
-		{
-			for (int pieceType = 0; pieceType < 6; pieceType++)
-			{
-				Piece piece{ 0, static_cast<PieceType>(pieceType), static_cast<PieceAlliance>(pieceAlliance) };
-				string piecePath = getPiecePath(piece);
-				texture = LoadTexture(piecePath.c_str());
-
-				pieceTextureMap[piecePath] = texture;
-
-				if (pieceAlliance == 0 && pieceType == 0)
-				{
-					textureSize = texture.width;
-				}
-			}
-		}
-
-		hasTexturesLoaded = true;
+	case PieceType::PAWN:
+	{
+		piecePath += "pawn";
+		break;
+	}
+	case PieceType::KNIGHT:
+	{
+		piecePath += "knight";
+		break;
+	}
+	case PieceType::BISHOP:
+	{
+		piecePath += "bishop";
+		break;
+	}
+	case PieceType::ROOK:
+	{
+		piecePath += "rook";
+		break;
+	}
+	case PieceType::QUEEN:
+	{
+		piecePath += "queen";
+		break;
+	}
+	case PieceType::KING:
+	{
+		piecePath += "king";
+		break;
+	}
 	}
 
-	static void drawBoard(Board& board)
+	piecePath += ".png";
+	return piecePath;
+}
+
+unordered_map<string, Texture2D> pieceTextureMap;
+int textureSize;
+
+unordered_map<int, Color> highlightTiles;
+
+void GUI::loadTextures()
+{
+	Texture2D texture;
+	for (int pieceAlliance = 0; pieceAlliance < 2; pieceAlliance++)
 	{
-		if (!hasTexturesLoaded)
+		for (int pieceType = 0; pieceType < 6; pieceType++)
 		{
-			loadTextures();
-		}
+			Piece piece{ 0, static_cast<PieceType>(pieceType), static_cast<PieceAlliance>(pieceAlliance) };
+			string piecePath = getPiecePath(piece);
+			texture = LoadTexture(piecePath.c_str());
 
-		windowSize = GetScreenWidth();
+			pieceTextureMap[piecePath] = texture;
 
-		tileSize = windowSize / 8;
-		int tilePosition;
-
-		float textureScale = tileSize / (float)textureSize;
-
-		unordered_set<int> highlightTiles;
-		if (board.hasPiece(selectedTilePosition) && isTileSelected)
-		{
-			legalMoves = board.getLegalMoves();
-			for (auto& move : legalMoves)
+			if (pieceAlliance == 0 && pieceType == 0)
 			{
-				if (move.movingPiece == board.getPiece(selectedTilePosition))
-				{
-					highlightTiles.insert(move.destinationPosition);
-				}
+				textureSize = texture.width;
 			}
 		}
+	}
+
+	hasTexturesLoaded = true;
+}
+
+void GUI::drawBoard(Board& board, int startX, int startY, int size)
+{
+	if (!hasTexturesLoaded)
+	{
+		loadTextures();
+	}
+
+	ClearBackground(BLACK);
+
+	tileSize = size / 8;
+
+	int tilePosition;
+	float textureScale = tileSize / (float)textureSize;
 		
-		for (int i = 0; i < 8; i++)
-		{
-			for (int j = 0; j < 8; j++)
-			{
-				tilePosition = j * 8 + i;
-
-				bool isDark = (i + j) % 2;
-				Color color = isDark ? DARKGRAY : BEIGE;
-
-				if (isTileSelected && tilePosition == selectedTilePosition)
-				{
-					color = PURPLE;
-				}
-
-				if (highlightTiles.count(tilePosition))
-				{
-					color = PINK;
-				}
-
-				DrawRectangle(
-					i * tileSize,
-					j * tileSize,
-					tileSize,
-					tileSize,
-					color
-				);
-
-				if (board.hasPiece(tilePosition))
-				{
-					string piecePath = getPiecePath(board.getPiece(tilePosition));
-					DrawTextureEx(pieceTextureMap.at(piecePath), { (float)i * tileSize, (float)j * tileSize }, 0.0f, textureScale, WHITE);
-				}
-
-				DrawText(TextFormat("%d", tilePosition), i * tileSize + tileSize*0.1, j * tileSize + tileSize*0.1, 20, BLACK);
-			}
-		}
-	}
-	
-	static void handleInput(Board& board)
+	for (int i = 0; i < 8; i++)
 	{
-		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+		for (int j = 0; j < 8; j++)
 		{
-			Vector2 mousePos = GetMousePosition();
+			tilePosition = j * 8 + i;
 
-			int i = mousePos.x / tileSize;
-			int j = mousePos.y / tileSize;
+			bool isDark = (i + j) % 2;
+			Color color = isDark ? DARKGRAY : BEIGE;
 
-			int currentSelectedTilePosition = j * 8 + i;
-
-			if (isTileSelected && currentSelectedTilePosition == selectedTilePosition)
+			if (selectedStartingPosition == tilePosition)
 			{
-				isTileSelected = false;
-				return;
+				color = PURPLE;
 			}
 
-			if (!isTileSelected)
+			if (highlightTiles.count(tilePosition))
 			{
-				isTileSelected = true;
-				selectedTilePosition = currentSelectedTilePosition;
-				return;
+				color = highlightTiles.at(tilePosition);
 			}
-			
-			Move attemptMove{ selectedTilePosition, currentSelectedTilePosition, Piece{}, false, Piece{} };
-			auto moveIter = legalMoves.find(attemptMove);
-			if (moveIter != legalMoves.end())
-			{
-				board.makeMove(*moveIter, true);
-				isTileSelected = false;
-				legalMoves = {};
-				return;
-			}
-		}
 
-		if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
-		{
-			isTileSelected = false;
+			DrawRectangle(
+				i * tileSize + startX,
+				j * tileSize + startY,
+				tileSize,
+				tileSize,
+				color
+			);
+
+			if (board.hasPiece(tilePosition))
+			{
+				string piecePath = getPiecePath(board.getPiece(tilePosition));
+				DrawTextureEx(pieceTextureMap.at(piecePath), { (float)i * tileSize, (float)j * tileSize }, 0.0f, textureScale, WHITE);
+			}
+
+			//DrawText(TextFormat("%d", tilePosition), i * tileSize + tileSize*0.1, j * tileSize + tileSize*0.1, 20, BLACK);
 		}
 	}
+}
+	
+void GUI::handleInput()
+{
+	if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+	{
+		Vector2 mousePos = GetMousePosition();
+
+		int i = mousePos.x / tileSize;
+		int j = mousePos.y / tileSize;
+
+		int currentTilePosition = j * 8 + i;
+
+		if (selectedStartingPosition == nullPosition)
+		{
+			selectedStartingPosition = currentTilePosition;
+		}
+		else
+		{
+			selectedDestinationPosition = currentTilePosition;
+		}
+	}
+}
+
+bool GUI::isStartingPositionSelected(int& startingPosition)
+{
+	if (selectedStartingPosition == nullPosition)
+	{
+		return false;
+	}
+	else
+	{
+		startingPosition = selectedStartingPosition;
+		return true;
+	}
+}
+
+bool GUI::isDestinationPositionSelected(int& destinationPosition)
+{
+	if (selectedDestinationPosition == nullPosition)
+	{
+		return false;
+	}
+	else
+	{
+		destinationPosition = selectedDestinationPosition;
+		return true;
+	}
+}
+
+void GUI::addHighlightTile(int position, Color color)
+{
+	highlightTiles[position] = color;
+}
+
+void GUI::resetHighlightTiles()
+{
+	highlightTiles.erase(highlightTiles.begin(), highlightTiles.end());
+}
+
+void GUI::resetStartingPosition()
+{
+	selectedStartingPosition = nullPosition;
+}
+
+void GUI::resetStartingPosition(int position)
+{
+	selectedStartingPosition = position;
+}
+
+void GUI::resetDestinationPosition()
+{
+	selectedDestinationPosition = nullPosition;
 }

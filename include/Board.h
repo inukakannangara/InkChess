@@ -11,7 +11,12 @@ protected:
 
 public:
 	virtual Piece getPiece(int position) = 0;
+
+	virtual PieceAlliance getPlayingAlliance() = 0;
+
 	virtual bool hasPiece(int position) = 0;
+	virtual bool hasPiece(int position, PieceAlliance alliance) = 0;
+
 	virtual void addPiece(const Piece& piece) = 0;
 	virtual void removePiece(const Piece& piece) = 0;
 

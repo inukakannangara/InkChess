@@ -48,7 +48,12 @@ private:
 
 public:
 	Piece getPiece(int position) override;
-	bool hasPiece(int position) override;
+
+	PieceAlliance getPlayingAlliance() override;
+
+ 	bool hasPiece(int position) override;
+	bool hasPiece(int position, PieceAlliance alliance) override;
+
 	void addPiece(const Piece& piece) override;
 	void removePiece(const Piece& piece) override;
 

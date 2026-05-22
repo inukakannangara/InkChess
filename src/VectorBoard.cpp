@@ -13,10 +13,23 @@ Piece VectorBoard::getPiece(int position)
 		return darkPieces.at(position);
 	}
 }
+
+PieceAlliance VectorBoard::getPlayingAlliance()
+{
+	return playingAlliance;
+}
+
 bool VectorBoard::hasPiece(int position)
 {
 	return lightPieces.count(position) || darkPieces.count(position);
 }
+
+bool VectorBoard::hasPiece(int position, PieceAlliance alliance)
+{
+	unordered_map<int, Piece>& pieces = (alliance == PieceAlliance::LIGHT) ? lightPieces : darkPieces;
+	return pieces.count(position);
+}
+
 void VectorBoard::addPiece(const Piece& piece)
 {
 	if (hasPiece(piece.piecePosition)) return;
