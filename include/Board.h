@@ -7,7 +7,7 @@
 class Board
 {
 protected:
-	bool isLightTurn;
+	PieceAlliance playingAlliance = PieceAlliance::LIGHT;
 
 public:
 	virtual Piece getPiece(int position) = 0;

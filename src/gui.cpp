@@ -163,7 +163,7 @@ namespace GUI
 					DrawTextureEx(pieceTextureMap.at(piecePath), { (float)i * tileSize, (float)j * tileSize }, 0.0f, textureScale, WHITE);
 				}
 
-				DrawText(TextFormat("%d", tilePosition), i * tileSize + tileSize*0.1, j * tileSize + tileSize*0.1, 10, BLACK);
+				DrawText(TextFormat("%d", tilePosition), i * tileSize + tileSize*0.1, j * tileSize + tileSize*0.1, 20, BLACK);
 			}
 		}
 	}

@@ -8,8 +8,13 @@ struct Move
 
 	Piece movingPiece;
 
-	bool isCaptureMove;
+	bool isCaptureMove = false;
 	Piece capturePiece;
+
+	bool isKingSideCastleMove = false;
+	bool isQueenSideCastleMove = false;
+
+	Piece movingRook;
 
 	bool operator<(const Move& other) const
 	{

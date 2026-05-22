@@ -26,6 +26,8 @@ struct Piece
 	PieceType pieceType;
 	PieceAlliance pieceAlliance;
 
+	int numTimesMoved = 0;
+
 	bool operator==(const Piece& other) const
 	{
 		return piecePosition == other.piecePosition && pieceType == other.pieceType && pieceAlliance == other.pieceAlliance;
